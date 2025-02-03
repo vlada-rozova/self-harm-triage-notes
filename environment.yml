@@ -1,0 +1,24 @@
+name: self-harm-triage-notes
+channels:
+  - conda-forge
+dependencies:
+  - python=3.11
+  - black
+  - flake8
+  - isort
+  - pip
+  - ipython
+  - jupyterlab
+  - matplotlib
+  - notebook
+  - numpy
+  - pandas
+  - scikit-learn
+  - seaborn
+  - pyarrow
+  - openpyxl
+  - pytest
+  - pytest-cov
+  - pip:
+    - python-dotenv
+    - -e .
