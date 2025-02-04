@@ -209,3 +209,12 @@ def preprocess(text):
     text = pattern.sub(r" ", text)
     
     return text
+
+def is_valid_token(token):
+    """
+    Check if a token contains any letters. 
+    """
+    for ch in token:
+        if ch.isalpha():
+            return True
+    return False
