@@ -195,11 +195,11 @@ def test_count_valid_tokens():
     # Check that values are correct
     assert res==exp_res
 
-class TestLoadNLPPipeline:
-    @pytest.fixture(scope="module")
-    def nlp(self):
-        return load_nlp_pipeline()
-    
+@pytest.fixture(scope="module")
+def nlp():
+    return load_nlp_pipeline()
+
+class TestLoadNLPPipeline:    
     def test_basic_pipeline_loading(self, nlp):
         assert nlp is not None
         assert isinstance(nlp, spacy.language.Language)
@@ -239,3 +239,7 @@ class TestLoadNLPPipeline:
         assert doc.has_annotation("TAG") is False
         assert doc.has_annotation("DEP") is False
         assert doc.has_annotation("ENT_TYPE") is False
+                
+def test_doc2str(nlp):
+    doc = nlp("This is a test document")
+    assert doc2str(doc) == "This is a test document"
