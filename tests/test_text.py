@@ -1,6 +1,9 @@
 from self_harm_triage_notes.text import *
 import pandas as pd
 from collections import Counter
+import pytest
+import spacy
+from self_harm_triage_notes.custom_tokenizer import combined_rule_tokenizer
 
 def test_count_tokens():
     """Test values and type returned by count_tokens()."""
@@ -193,4 +196,47 @@ def test_count_valid_tokens():
     # Check that values are correct
     assert res==exp_res
 
-
+class TestLoadNLPPipeline:
+    @pytest.fixture(scope="module")
+    def nlp(self):
+        return load_nlp_pipeline()
+    
+    def test_basic_pipeline_loading(self, nlp):
+        assert nlp is not None
+        assert isinstance(nlp, spacy.language.Language)
+        
+    def test_disabled_components(self, nlp):
+        disabled_components = ['tagger', 'attribute_ruler', 'lemmatizer', 'parser', 'ner']
+        for component in disabled_components:
+            assert component not in nlp.pipe_names
+            
+    def test_custom_tokenizer(self, nlp):
+        assert nlp.tokenizer.__class__ == spacy.tokenizer.Tokenizer
+        # Verify it's using our custom tokenizer
+        assert isinstance(nlp.tokenizer, type(combined_rule_tokenizer(nlp)))
+        
+    def test_removed_rules(self, nlp):
+        removed_rules = ['id', 'wed', 'im']
+        for rule in removed_rules:
+            assert rule not in nlp.tokenizer.rules
+            
+    def test_tokenization_examples(self, nlp):
+        text = "I'm wed to the id concept"
+        doc = nlp(text)
+        tokens = [token.text for token in doc]
+        assert "I" in tokens
+        assert "'m" in tokens
+        assert "wed" in tokens
+        assert "id" in tokens
+        
+    def test_model_loading_error(self):
+        with pytest.raises(OSError):
+            # Try loading non-existent model
+            spacy.load("non_existent_model")
+            
+    def test_pipeline_processing(self, nlp):
+        text = "Sample medical text"
+        doc = nlp(text)
+        assert doc.has_annotation("TAG") is False
+        assert doc.has_annotation("DEP") is False
+        assert doc.has_annotation("ENT_TYPE") is False

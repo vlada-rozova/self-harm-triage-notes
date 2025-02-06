@@ -1,5 +1,7 @@
 from collections import Counter
 import re
+import spacy
+from self_harm_triage_notes.custom_tokenizer import combined_rule_tokenizer
 
 def count_tokens(x):
     """Count the number of times each unique token occurs in corpus."""
@@ -224,3 +226,32 @@ def is_valid_token(token):
 def count_valid_tokens(x):
     """Count the number of times each unique valid token occurs in corpus."""
     return Counter({k:v for k,v in count_tokens(x).items() if is_valid_token(k)})
+
+def load_nlp_pipeline():
+    """
+    Load scispacy model and update with a custom tokenizer.
+    """
+    nlp = spacy.load("en_core_sci_sm", 
+                     disable=['tagger', 'attribute_ruler', 'lemmatizer', 'parser', 'ner'])
+    nlp.tokenizer = combined_rule_tokenizer(nlp)
+    nlp.tokenizer.rules = {k: v for k,v in nlp.tokenizer.rules.items() 
+                           if (k!='id') and (k!='wed') and (k!='im')}
+    
+    return nlp
+    
+            
+# def doc2str(doc):
+#     """
+#     Convert spacy doc into string by joining individual tokens by whitespace.
+#     """
+#     return ' '.join([token.text for token in doc])
+
+# def tokenize_step1(x):
+#     # Load scispacy model for tokenization
+#     nlp = load_nlp_pipeline()
+    
+#     # Apply tokeniser
+#     docs = x.apply(nlp)
+    
+#     # Convert doc to str and fix leading full stop
+#     return docs.apply(doc2str).apply(fix_leading_fullstop)
