@@ -238,13 +238,12 @@ def load_nlp_pipeline():
                            if (k!='id') and (k!='wed') and (k!='im')}
     
     return nlp
-    
             
-# def doc2str(doc):
-#     """
-#     Convert spacy doc into string by joining individual tokens by whitespace.
-#     """
-#     return ' '.join([token.text for token in doc])
+def doc2str(doc):
+    """
+    Convert spacy doc into string by joining individual tokens by whitespace.
+    """
+    return ' '.join([token.text for token in doc])
 
 # def tokenize_step1(x):
 #     # Load scispacy model for tokenization
