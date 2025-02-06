@@ -19,6 +19,7 @@ dependencies:
   - openpyxl
   - pytest
   - pytest-cov
+  - spacy
   - pip:
     - python-dotenv
     - -e .
