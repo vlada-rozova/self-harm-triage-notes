@@ -36,7 +36,7 @@ def preprocess(text):
     
     # Remove ";" where meant l
     pattern = re.compile(";l|l;")
-    text = pattern.sub(r"p", text)
+    text = pattern.sub(r"l", text)
     
     # Replace "`" with "'"
     text = text.replace("`", r"'")
@@ -57,7 +57,7 @@ def preprocess(text):
     text = text.replace("@", r" at ")
     
     # "^" to "elevated"
-    text = text.replace("\^", r" elevated ")
+    text = text.replace("^", r" elevated ")
     
     # "~" to "approximately"
     text = text.replace("~", r" approximately ")
@@ -105,7 +105,7 @@ def preprocess(text):
     text = pattern.sub(r" regular \1", text)
     
     # 3. Normalise respiratory rate
-    pattern = re.compile("([^a-z])rr(?![a-z])|resp\srate|resp\W?(?=\d)")
+    pattern = re.compile("([^a-z]|^)rr(?![a-z])|resp\srate|resp\W?(?=\d)")
     text = pattern.sub(r"\1 respiratory rate ", text)
     
     # 4. Normalise oxygen saturation
@@ -115,7 +115,7 @@ def preprocess(text):
     text = pattern.sub(r"\1 oxygen saturation ", text)
     
     # 5. Normilise temperature
-    pattern = re.compile("([^a-z])t(emp)?\W{0,3}(?=[34]\d)")
+    pattern = re.compile("([^a-z]|^)t(emp)?\W{0,3}(?=[34]\d)")
     text = pattern.sub(r"\1 temperature ", text)
 
     # 6. Normalise hours
@@ -142,7 +142,7 @@ def preprocess(text):
     text = pattern.sub(r" section351 ", text)
 
     # Add spaces around "bp"
-    pattern = re.compile("([^a-z])bp(?![a-z])")
+    pattern = re.compile("([^a-z]|^)bp(?![a-z])")
     text = pattern.sub(r"\1 blood pressure ", text)
     
     # Add spaces around "bmp", "bsl", "gcs"
@@ -207,6 +207,9 @@ def preprocess(text):
     # Remove duplicated spaces
     pattern = re.compile("\s{2,}")
     text = pattern.sub(r" ", text)
+
+    # Strip
+    text = text.strip()
     
     return text
 
