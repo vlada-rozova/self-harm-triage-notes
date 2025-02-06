@@ -19,9 +19,8 @@ def test_count_tokens():
 
 def test_print_token_counts():
     """Execution test for print_token_counts()."""
-    x = pd.Series(['I have a tasty apple', 
-                   'A red apple is tasty.'])
-    print_token_counts(x)
+    counts = Counter({'I': 1, 'have': 1, 'a': 0, 'tasty': 1, 'apple': 2})
+    print_token_counts(counts)
 
 class TestFixLeadingFullstop():
     def test_fix_leading_fullstop_basic(self):
