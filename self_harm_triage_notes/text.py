@@ -7,9 +7,8 @@ def count_tokens(x):
     x.apply(lambda y: [tokens.append(token) for token in y.split()])
     return Counter(tokens)
 
-def print_token_counts(x):
+def print_token_counts(counts):
     """Print stats for token counts."""
-    counts = count_tokens(x)
     print("The corpus contains %d unique tokens (%d tokens in total)." % (len(counts), sum(counts.values())))
 
 def fix_leading_fullstop(text):
@@ -221,3 +220,7 @@ def is_valid_token(token):
         if ch.isalpha():
             return True
     return False
+
+def count_valid_tokens(x):
+    """Count the number of times each unique valid token occurs in corpus."""
+    return Counter({k:v for k,v in count_tokens(x).items() if is_valid_token(k)})
