@@ -182,4 +182,15 @@ class TestIsValidToken:
         assert is_valid_token("\n") == False
         assert is_valid_token("\t") == False
 
+def test_count_valid_tokens():
+    """Test values and type returned by count_valid_tokens()."""
+    x = pd.Series(['hello hello world 123', 
+                   't.38 120/60'])
+    exp_res = Counter({'hello': 2, 'world': 1, 't.38': 1})
+    res = count_valid_tokens(x)
+    # Check that type is Counter
+    assert type(res)==Counter
+    # Check that values are correct
+    assert res==exp_res
+
 
