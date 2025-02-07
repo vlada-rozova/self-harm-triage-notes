@@ -32,7 +32,7 @@ def combined_rule_prefixes() -> List[str]:
     prefixes = (
         ["§", "%", "=", r"\+", "-", "/"]
         + [
-            "\.(?![0-9])",
+            r"\.(?![0-9])",
             r"x(?=[0-9])",
             r"\d+(?=[a-z])",
           ]
@@ -97,7 +97,7 @@ def combined_rule_tokenizer(nlp: Language) -> Tokenizer:
         + quotes
         + char_classes.LIST_ICONS
         + ["'s", "'S", "’s", "’S", "’s", "’S"]
-        + ["-", "/", "\+"]
+        + ["-", "/", r"\+"]
         + [
             r"(?<=[0-9])\+",
             r"(?<=°[FfCcKk])\.",
