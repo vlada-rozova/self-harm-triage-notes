@@ -20,6 +20,7 @@ dependencies:
   - pytest
   - pytest-cov
   - spacy
+  - pyspellchecker
   - pip:
     - python-dotenv
     - -e .
