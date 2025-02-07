@@ -241,5 +241,5 @@ class TestLoadNLPPipeline:
         assert doc.has_annotation("ENT_TYPE") is False
                 
 def test_doc2str(nlp):
-    doc = nlp("This is a test document")
-    assert doc2str(doc) == "This is a test document"
+    doc = nlp("I'm a test document")
+    assert doc2str(doc) == "i am a test document"

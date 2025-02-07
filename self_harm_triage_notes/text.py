@@ -241,9 +241,9 @@ def load_nlp_pipeline():
             
 def doc2str(doc):
     """
-    Convert spacy doc into string by joining individual tokens by whitespace.
+    Convert spacy doc into string by joining normalised tokens by whitespace.
     """
-    return ' '.join([token.text for token in doc])
+    return ' '.join([token.norm_ for token in doc])
 
 # def tokenize_step1(x):
 #     # Load scispacy model for tokenization
