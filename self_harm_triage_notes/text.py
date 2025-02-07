@@ -245,12 +245,13 @@ def doc2str(doc):
     """
     return ' '.join([token.norm_ for token in doc])
 
-# def tokenize_step1(x):
-#     # Load scispacy model for tokenization
-#     nlp = load_nlp_pipeline()
+def tokenize_step1(x):
+    """First pass of the tokenizer."""
+    # Load scispacy model for tokenization
+    nlp = load_nlp_pipeline()
     
-#     # Apply tokeniser
-#     docs = x.apply(nlp)
+    # Apply tokeniser
+    docs = x.apply(nlp)
     
-#     # Convert doc to str and fix leading full stop
-#     return docs.apply(doc2str).apply(fix_leading_fullstop)
+    # Convert doc to str and fix leading full stop
+    return docs.apply(doc2str).apply(fix_leading_fullstop)

@@ -243,3 +243,21 @@ class TestLoadNLPPipeline:
 def test_doc2str(nlp):
     doc = nlp("I'm a test document")
     assert doc2str(doc) == "i am a test document"
+
+def test_tokenize_step1(nlp):
+    x = pd.Series([
+                "blood pressure 120/80 temperature 38.5, warm/pink/dry",
+                "hr 72 respiratory rate 16",
+                "sao2 98; at home w/ pain",
+                "patient's gcs 15. w/o visible injuries",
+                "patient seed on wed for sob, didn't cooperate"
+            ])
+    res = tokenize_step1(x)
+    # Check that type is str
+    assert type(res[0])==str
+    # Check that values are correct
+    assert res[0]=="blood pressure 120/80 temperature 38.5 , warm/pink/dry"
+    assert res[1]=="hr 72 respiratory rate 16"
+    assert res[2]=="sao2 98 ; at home w / pain"
+    assert res[3]=="patient 's gcs 15 . without visible injuries"
+    assert res[4]=="patient seed on wed for sob , do not cooperate"
