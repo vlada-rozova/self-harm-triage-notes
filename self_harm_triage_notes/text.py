@@ -17,7 +17,7 @@ def fix_leading_fullstop(text):
     """
     Separate a leading full stop with a whitespace.
     """
-    pattern = re.compile("(?<=\s)\.(?=[a-z])")
+    pattern = re.compile(r"(?<=\s)\.(?=[a-z])")
     text = pattern.sub(r". ", text)
     return text
 
@@ -32,7 +32,7 @@ def preprocess(text):
     text = text.replace("_x000d_\n", r" ")
     
     # Remove "[" or "{" where meant p
-    pattern = re.compile("\[p|p\[|{p|p{")
+    pattern = re.compile(r"\[p|p\[|{p|p{")
     text = pattern.sub(r"p", text)
     
     # Remove ";" where meant l
@@ -43,15 +43,15 @@ def preprocess(text):
     text = text.replace("`", r"'")
     
     # "l)" to "left"
-    pattern = re.compile("\sl(?=[\)\.])")
+    pattern = re.compile(r"\sl(?=[\)\.])")
     text = pattern.sub(r" left ", text)
-    pattern = re.compile("^l(?=[\)\.])")
+    pattern = re.compile(r"^l(?=[\)\.])")
     text = pattern.sub(r" left ", text)
     
     # "r)" to "right"
-    pattern = re.compile("\sr(?=[\)\.])")
+    pattern = re.compile(r"\sr(?=[\)\.])")
     text = pattern.sub(r" right ", text)
-    pattern = re.compile("^r(?=[\)\.])")
+    pattern = re.compile(r"^r(?=[\)\.])")
     text = pattern.sub(r" right ", text)
     
     # "@" to "at"
@@ -64,19 +64,19 @@ def preprocess(text):
     text = text.replace("~", r" approximately ")
 
     # "#" to "fractured" if not followed by number
-    pattern = re.compile("#(?!\d)")
+    pattern = re.compile(r"#(?!\d)")
     text = pattern.sub(r" fracture ", text)
     
     # "+ve" to "positive"
-    pattern = re.compile("\+ve(?![a-z])")
+    pattern = re.compile(r"\+ve(?![a-z])")
     text = pattern.sub(r" positive ", text)
     
     # "-ve" to "positive"
-    pattern = re.compile("\-ve(?![a-z])")
+    pattern = re.compile(r"\-ve(?![a-z])")
     text = pattern.sub(r" negative ", text)
     
     # "co operative" and "co-operative" to "cooperative"
-    pattern = re.compile("co[\s-]operative")
+    pattern = re.compile(r"co[\s-]operative")
     text = pattern.sub(r"cooperative", text)
     
     # "r/ship" to relationship
@@ -96,27 +96,27 @@ def preprocess(text):
     text = pattern.sub(r" movement ", text)
     
     # 1. Replace "preg" by "pregnant"
-    pattern = re.compile("preg$|preg\.?(\W)")
+    pattern = re.compile(r"preg$|preg\.?(\W)")
     text = pattern.sub(r" pregnant \1", text)
     
     # 2. Replace "reg" by "regular"
-    pattern = re.compile("irreg$|irreg\.?(\W)")
+    pattern = re.compile(r"irreg$|irreg\.?(\W)")
     text = pattern.sub(r" irregular \1", text)
-    pattern = re.compile("reg$|reg\.?(\W)")
+    pattern = re.compile(r"reg$|reg\.?(\W)")
     text = pattern.sub(r" regular \1", text)
     
     # 3. Normalise respiratory rate
-    pattern = re.compile("([^a-z]|^)rr(?![a-z])|resp\srate|resp\W?(?=\d)")
+    pattern = re.compile(r"([^a-z]|^)rr(?![a-z])|resp\srate|resp\W?(?=\d)")
     text = pattern.sub(r"\1 respiratory rate ", text)
     
     # 4. Normalise oxygen saturation
-    pattern = re.compile("sp\s?[o0]2|sp2|spo02|sa\s?[o0]2|sats?\W{0,3}(?=\d)")
+    pattern = re.compile(r"sp\s?[o0]2|sp2|spo02|sa\s?[o0]2|sats?\W{0,3}(?=\d)")
     text = pattern.sub(r" sao2 ", text) 
-    pattern = re.compile("([^a-z])sp\W{0,3}(?=[19])")
+    pattern = re.compile(r"([^a-z])sp\W{0,3}(?=[19])")
     text = pattern.sub(r"\1 oxygen saturation ", text)
     
     # 5. Normilise temperature
-    pattern = re.compile("([^a-z]|^)t(emp)?\W{0,3}(?=[34]\d)")
+    pattern = re.compile(r"([^a-z]|^)t(emp)?\W{0,3}(?=[34]\d)")
     text = pattern.sub(r"\1 temperature ", text)
 
     # 6. Normalise hours
@@ -139,7 +139,7 @@ def preprocess(text):
     text = pattern.sub(r" \1 pain ", text)
     
     # 11. Normalise section 351
-    pattern = re.compile("(section|sect|s)\s?351")
+    pattern = re.compile(r"(section|sect|s)\s?351")
     text = pattern.sub(r" section351 ", text)
 
     # Add spaces around "bp"
@@ -164,13 +164,13 @@ def preprocess(text):
     pattern = re.compile("\'{2,}")
     text = pattern.sub(r"'", text)
     
-    pattern = re.compile("\+{2,}")
+    pattern = re.compile(r"\+{2,}")
     text = pattern.sub(r"+", text)
     
     pattern = re.compile("-{2,}")
     text = pattern.sub(r"-", text)
     
-    pattern = re.compile("\.{2,}")
+    pattern = re.compile(r"\.{2,}")
     text = pattern.sub(r".", text)
     
     pattern = re.compile("/{2,}")
@@ -183,11 +183,11 @@ def preprocess(text):
     text = pattern.sub(r";", text)  
     
     # Remove "." and "'" where meant "/"
-    pattern = re.compile("\./|/\.|\'/|/\'")
+    pattern = re.compile(r"\./|/\.|\'/|/\'")
     text = pattern.sub(r"/", text)
     
     # Add spaces around - when digits on one or both sides
-    pattern = re.compile("(?<=\d)-|-(?=\d)")
+    pattern = re.compile(r"(?<=\d)-|-(?=\d)")
     text = pattern.sub(r" - ", text)
 
     # Add spaces around : when letters on one or both sides
@@ -195,7 +195,7 @@ def preprocess(text):
     text = pattern.sub(r" : ", text)
     
     # Add spaces around "/" when digit on one side and alpha on the other
-    pattern = re.compile("(?<=\d)/(?=[a-z])|(?<=[a-z])/(?=\d)")
+    pattern = re.compile(r"(?<=\d)/(?=[a-z])|(?<=[a-z])/(?=\d)")
     text = pattern.sub(r" / ", text)
     
     # Separate two punctuation marks with a space
@@ -206,7 +206,7 @@ def preprocess(text):
     text = fix_leading_fullstop(text)
     
     # Remove duplicated spaces
-    pattern = re.compile("\s{2,}")
+    pattern = re.compile(r"\s{2,}")
     text = pattern.sub(r" ", text)
 
     # Strip
@@ -255,3 +255,34 @@ def tokenize_step1(x):
     
     # Convert doc to str and fix leading full stop
     return docs.apply(doc2str).apply(fix_leading_fullstop)
+
+def tokenize_step2(x, vocab):
+    """
+    Additional tokenisation to detect and split compound tokens.
+    """
+    def is_compound_token(token):
+        """
+        Check if a compound token is known to the ED vocabulary.
+        """
+        pattern = re.compile(".[\"&'+-./:;].")
+        return pattern.search(token) and token not in vocab
+
+    def retokenize(text):
+        """
+        Split unknown compound tokens into subtokens and create a new doc.
+        """
+        new_text = []
+        for token in text.split():
+            # Check if contains letters and is a compound token
+            if is_valid_token(token) and is_compound_token(token):
+                # Split into new tokens
+                for new_token in re.split("([\"&'+-./:;])", token):
+                    # Append to the new list of tokens
+                    new_text.append(new_token)
+            else:
+                # Append to the new list of tokens
+                new_text.append(token)
+
+        return ' '.join(new_text)
+    
+    return x.apply(retokenize)

@@ -261,3 +261,76 @@ def test_tokenize_step1(nlp):
     assert res[2]=="sao2 98 ; at home w / pain"
     assert res[3]=="patient 's gcs 15 . without visible injuries"
     assert res[4]=="patient seed on wed for sob , do not cooperate"
+
+class TestTokenizeStep2:
+    @pytest.fixture(scope="class")
+    def sample_vocab(self):
+        """Sample vocabulary for testing."""
+        return {
+            'hello',
+            'world',
+            'patient',
+            'doctor',
+            'temp-controlled',  # Example of valid compound token in vocab
+            'a/b'              # Another valid compound token
+        }
+
+    def test_basic_tokenization(self, sample_vocab):
+        """Test basic tokenization with no compound tokens."""
+        input_series = pd.Series(['hello world'])
+        result = tokenize_step2(input_series, sample_vocab)
+        assert result.iloc[0] == 'hello world'
+
+    def test_compound_token_split(self, sample_vocab):
+        """Test splitting of unknown compound tokens."""
+        input_series = pd.Series(['patient-complains'])
+        result = tokenize_step2(input_series, sample_vocab)
+        assert result.iloc[0] == 'patient - complains'
+
+    def test_known_compound_token(self, sample_vocab):
+        """Test preservation of known compound tokens."""
+        input_series = pd.Series(['temp-controlled room'])
+        result = tokenize_step2(input_series, sample_vocab)
+        assert result.iloc[0] == 'temp-controlled room'
+
+    def test_multiple_compound_tokens(self, sample_vocab):
+        """Test handling of multiple compound tokens in one string."""
+        input_series = pd.Series(['patient/admits:anxiety'])
+        result = tokenize_step2(input_series, sample_vocab)
+        assert result.iloc[0] == 'patient / admits : anxiety'
+
+    def test_mixed_known_unknown_compounds(self, sample_vocab):
+        """Test mixture of known and unknown compound tokens."""
+        input_series = pd.Series(['a/b test-case'])
+        result = tokenize_step2(input_series, sample_vocab)
+        assert result.iloc[0] == 'a/b test - case'
+
+    def test_empty_input(self, sample_vocab):
+        """Test handling of empty input."""
+        input_series = pd.Series([''])
+        result = tokenize_step2(input_series, sample_vocab)
+        assert result.iloc[0] == ''
+
+    def test_no_letters(self, sample_vocab):
+        """Test handling of tokens without letters."""
+        input_series = pd.Series(['123-456'])
+        result = tokenize_step2(input_series, sample_vocab)
+        assert result.iloc[0] == '123-456'
+
+    def test_multiple_rows(self, sample_vocab):
+        """Test processing of multiple rows in series."""
+        input_series = pd.Series([
+            'patient-complains',
+            'temp-controlled',
+            'normal text'
+        ])
+        result = tokenize_step2(input_series, sample_vocab)
+        assert result.iloc[0] == 'patient - complains'
+        assert result.iloc[1] == 'temp-controlled'
+        assert result.iloc[2] == 'normal text'
+
+    def test_multiple_separators(self, sample_vocab):
+        """Test handling of tokens with multiple separators."""
+        input_series = pd.Series(['patient:self/reported-symptoms'])
+        result = tokenize_step2(input_series, sample_vocab)
+        assert result.iloc[0] == 'patient : self / reported - symptoms'
