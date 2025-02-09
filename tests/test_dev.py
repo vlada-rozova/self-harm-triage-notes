@@ -25,3 +25,14 @@ def test_load_word_list():
         assert word_list['word2'] == 3
         assert word_list['word3'] == 2
         assert sum(word_list.values()) == 10
+
+def test_load_misspelled_dict():
+    mock_misspelled_dict_data = {'word1': 'word4', 'word2': 'word5', 'word3': 'word6'}
+    mock_json = json.dumps(mock_misspelled_dict_data)
+    with patch('builtins.open', mock_open(read_data=mock_json)):
+        misspelled_dict = load_misspelled_dict('test')
+        assert isinstance(misspelled_dict, dict)
+        assert len(misspelled_dict) == 3
+        assert misspelled_dict['word1'] == 'word4'
+        assert misspelled_dict['word2'] == 'word5'
+        assert misspelled_dict['word3'] == 'word6'
