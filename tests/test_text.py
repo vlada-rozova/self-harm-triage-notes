@@ -335,9 +335,21 @@ class TestTokenizeStep2:
         result = tokenize_step2(input_series, sample_vocab)
         assert result.iloc[0] == 'patient : self / reported - symptoms'
 
-class TestSpellingCorrection:
+def test_count_valid_tokens_in_vocab():
+    """Test values and type returned by count_valid_tokens_in_vocab()."""
+    x = pd.Series(['hello hello world 123', 
+                   't.38 120/60'])
+    vocab = ['hello', 'world', 'patient']
+    exp_res = Counter({'hello': 2, 'world': 1})
+    res = count_valid_tokens_in_vocab(x, vocab)
+    # Check that type is Counter
+    assert type(res)==Counter
+    # Check that values are correct
+    assert res==exp_res
+
+class TestCorrectTokens:
     @pytest.fixture(scope="class")
-    def misspelled_dict(self):
+    def _dict(self):
         return {
             'helth': 'health',
             'anxius': 'anxious',
@@ -345,40 +357,50 @@ class TestSpellingCorrection:
             'deppresed': 'depressed'
         }
 
-    def test_basic_correction(self, misspelled_dict):
+    def test_basic_correction(self, _dict):
         """Test basic spelling correction functionality"""
         text = "patient helth anxius"
         expected = "patient health anxious"
-        assert spelling_correction(text, misspelled_dict) == expected
+        assert correct_tokens(text, _dict) == expected
 
-    def test_multiple_corrections(self, misspelled_dict):
+    def test_multiple_corrections(self, _dict):
         """Test multiple corrections in one text"""
         text = "helth anxius deppresed"
         expected = "health anxious depressed"
-        assert spelling_correction(text, misspelled_dict) == expected
+        assert correct_tokens(text, _dict) == expected
 
-    def test_no_corrections_needed(self, misspelled_dict):
+    def test_no_corrections_needed(self, _dict):
         """Test text with no misspellings"""
         text = "patient is healthy"
-        assert spelling_correction(text, misspelled_dict) == text
+        assert correct_tokens(text, _dict) == text
 
-    def test_empty_text(self, misspelled_dict):
+    def test_empty_text(self, _dict):
         """Test empty string input"""
-        assert spelling_correction("", misspelled_dict) == ""
+        assert correct_tokens("", _dict) == ""
 
     def test_empty_dictionary(self):
         """Test with empty misspelling dictionary"""
         text = "helth anxius"
-        assert spelling_correction(text, {}) == text
+        assert correct_tokens(text, {}) == text
 
-    def test_mixed_corrections(self, misspelled_dict):
+    def test_mixed_corrections(self, _dict):
         """Test text with both correct and incorrect spellings"""
         text = "patient helth is anxius"
         expected = "patient health is anxious"
-        assert spelling_correction(text, misspelled_dict) == expected
+        assert correct_tokens(text, _dict) == expected
 
-    def test_multiple_spaces(self, misspelled_dict):
+    def test_multiple_spaces(self, _dict):
         """Test text with multiple spaces between words"""
         text = "helth    anxius"
         expected = "health anxious"
-        assert spelling_correction(text, misspelled_dict) == expected
+        assert correct_tokens(text, _dict) == expected
+
+def test_select_valid_tokens():
+    """Test values and type returned by select_valid_tokens()."""
+    text = 'patient presented with t.38 bp 120/60'
+    exp_res = 'patient presented with t.38 bp'
+    res = select_valid_tokens(text)
+    # Check that type is list
+    assert type(res)==str
+    # Check that values are correct
+    assert res==exp_res

@@ -287,14 +287,21 @@ def tokenize_step2(x, vocab):
     
     return x.apply(retokenize)
 
-def spelling_correction(text, misspelled_dict):
+def count_valid_tokens_in_vocab(tokens, vocab):
     """
-    Replace known misspellings with their corrected versions.
+    Count the number of times each unique token occurs in the vocabulary.
     """
-    corrected_tokens = []
-    for token in text.split():
-        if token in misspelled_dict:
-            corrected_tokens.append(misspelled_dict[token])
-        else:
-            corrected_tokens.append(token)
+    return Counter({k:v for k,v in count_valid_tokens(tokens).items() if k in vocab})
+
+def correct_tokens(text, _dict):
+    """
+    Replace tokens with their corrected versions.
+    """
+    corrected_tokens = [_dict[token] if token in _dict else token for token in text.split()]
     return ' '.join(corrected_tokens)
+
+def select_valid_tokens(text):
+    """
+    Select valid tokens from a text.
+    """
+    return ' '.join([token for token in text.split() if is_valid_token(token)])
