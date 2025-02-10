@@ -334,3 +334,51 @@ class TestTokenizeStep2:
         input_series = pd.Series(['patient:self/reported-symptoms'])
         result = tokenize_step2(input_series, sample_vocab)
         assert result.iloc[0] == 'patient : self / reported - symptoms'
+
+class TestSpellingCorrection:
+    @pytest.fixture(scope="class")
+    def misspelled_dict(self):
+        return {
+            'helth': 'health',
+            'anxius': 'anxious',
+            'suiside': 'suicide',
+            'deppresed': 'depressed'
+        }
+
+    def test_basic_correction(self, misspelled_dict):
+        """Test basic spelling correction functionality"""
+        text = "patient helth anxius"
+        expected = "patient health anxious"
+        assert spelling_correction(text, misspelled_dict) == expected
+
+    def test_multiple_corrections(self, misspelled_dict):
+        """Test multiple corrections in one text"""
+        text = "helth anxius deppresed"
+        expected = "health anxious depressed"
+        assert spelling_correction(text, misspelled_dict) == expected
+
+    def test_no_corrections_needed(self, misspelled_dict):
+        """Test text with no misspellings"""
+        text = "patient is healthy"
+        assert spelling_correction(text, misspelled_dict) == text
+
+    def test_empty_text(self, misspelled_dict):
+        """Test empty string input"""
+        assert spelling_correction("", misspelled_dict) == ""
+
+    def test_empty_dictionary(self):
+        """Test with empty misspelling dictionary"""
+        text = "helth anxius"
+        assert spelling_correction(text, {}) == text
+
+    def test_mixed_corrections(self, misspelled_dict):
+        """Test text with both correct and incorrect spellings"""
+        text = "patient helth is anxius"
+        expected = "patient health is anxious"
+        assert spelling_correction(text, misspelled_dict) == expected
+
+    def test_multiple_spaces(self, misspelled_dict):
+        """Test text with multiple spaces between words"""
+        text = "helth    anxius"
+        expected = "health anxious"
+        assert spelling_correction(text, misspelled_dict) == expected

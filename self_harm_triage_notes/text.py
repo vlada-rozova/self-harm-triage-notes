@@ -286,3 +286,15 @@ def tokenize_step2(x, vocab):
         return ' '.join(new_text)
     
     return x.apply(retokenize)
+
+def spelling_correction(text, misspelled_dict):
+    """
+    Replace known misspellings with their corrected versions.
+    """
+    corrected_tokens = []
+    for token in text.split():
+        if token in misspelled_dict:
+            corrected_tokens.append(misspelled_dict[token])
+        else:
+            corrected_tokens.append(token)
+    return ' '.join(corrected_tokens)
