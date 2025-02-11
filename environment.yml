@@ -21,6 +21,7 @@ dependencies:
   - pytest-cov
   - spacy
   - pyspellchecker
+  - lightgbm
   - pip:
     - python-dotenv
     - -e .
