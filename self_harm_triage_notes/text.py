@@ -3,15 +3,19 @@ import re
 import spacy
 from self_harm_triage_notes.custom_tokenizer import combined_rule_tokenizer
 
-def count_tokens(x):
-    """Count the number of times each unique token occurs in corpus."""
+def count_tokens(x, valid=False):
+    """Count the number of times each token occurs in corpus."""
     tokens = []
     x.apply(lambda y: [tokens.append(token) for token in y.split()])
-    return Counter(tokens)
+    counts = Counter(tokens)
+    if valid:
+        return Counter({k:v for k,v in count_tokens(x).items() if is_valid_token(k)})
+    return counts
 
 def print_token_counts(counts):
     """Print stats for token counts."""
-    print("The corpus contains %d unique tokens (%d tokens in total)." % (len(counts), sum(counts.values())))
+    print("The corpus contains %d unique tokens (%d tokens in total)." % 
+          (len([k for k, v in counts.items() if v > 0]), sum(counts.values())))
 
 def fix_leading_fullstop(text):
     """
@@ -223,10 +227,6 @@ def is_valid_token(token):
             return True
     return False
 
-def count_valid_tokens(x):
-    """Count the number of times each unique valid token occurs in corpus."""
-    return Counter({k:v for k,v in count_tokens(x).items() if is_valid_token(k)})
-
 def load_nlp_pipeline():
     """
     Load scispacy model and update with a custom tokenizer.
@@ -287,11 +287,10 @@ def tokenize_step2(x, vocab):
     
     return x.apply(retokenize)
 
-def count_valid_tokens_in_vocab(tokens, vocab):
-    """
-    Count the number of times each unique token occurs in the vocabulary.
-    """
-    return Counter({k:v for k,v in count_valid_tokens(tokens).items() if k in vocab})
+def count_vocab_tokens_in_data(x, vocab):
+    """Count the number of times each token from vocab occurs in corpus."""
+    counts = count_tokens(x)
+    return Counter({t:counts[t] for t in vocab})
 
 def correct_tokens(text, _dict):
     """
