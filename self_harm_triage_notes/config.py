@@ -28,3 +28,12 @@ amt_tp_path = resources_dir / "AMT/Trade-product-reference-set-20230831-expansio
 # Path to the list of abbreviations
 abbr_path = resources_dir / "Abbreviations/Clinical Abbreviations List - SESLHDPR 282 cleaned.xlsx"
 
+# Models directory
+models_dir = root / "models"
+
+# Results directory
+results_dir = root / "results"
+
+# Global variables
+N_SPLITS = 5
+
