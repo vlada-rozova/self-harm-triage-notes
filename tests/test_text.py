@@ -7,11 +7,17 @@ from self_harm_triage_notes.custom_tokenizer import combined_rule_tokenizer
 
 def test_count_tokens():
     """Test values and type returned by count_tokens()."""
-    x = pd.Series(['I have a tasty apple', 
-                   'A red apple is tasty.'])
-    exp_res = Counter({'I': 1, 'have': 1, 'a': 1, 'tasty': 1, 'apple': 2, 
-                       'A': 1, 'red': 1, 'is': 1, 'tasty.': 1})
+    x = pd.Series(['hello hello world 123', 
+                   't.38 120/60'])
+    exp_res = Counter({'hello': 2, 'world': 1, 't.38': 1, '120/60': 1, '123': 1})
     res = count_tokens(x)
+    # Check that type is Counter
+    assert type(res)==Counter
+    # Check that values are correct
+    assert res==exp_res
+    # Valid only
+    exp_res = Counter({'hello': 2, 'world': 1, 't.38': 1})
+    res = count_tokens(x, valid=True)
     # Check that type is Counter
     assert type(res)==Counter
     # Check that values are correct
@@ -67,7 +73,8 @@ class TestPreprocess():
             "[p": "p",
             "p[": "p",
             "{p": "p",
-            "p{": "p"
+            "p{": "p",
+            "de[pression" : "depression",
         }
         for input_text, expected in test_cases.items():
             assert preprocess(input_text) == expected
@@ -184,18 +191,7 @@ class TestIsValidToken:
         assert is_valid_token("\n") == False
         assert is_valid_token("\t") == False
 
-def test_count_valid_tokens():
-    """Test values and type returned by count_valid_tokens()."""
-    x = pd.Series(['hello hello world 123', 
-                   't.38 120/60'])
-    exp_res = Counter({'hello': 2, 'world': 1, 't.38': 1})
-    res = count_valid_tokens(x)
-    # Check that type is Counter
-    assert type(res)==Counter
-    # Check that values are correct
-    assert res==exp_res
-
-@pytest.fixture(scope="module")
+@pytest.fixture(scope='module')
 def nlp():
     return load_nlp_pipeline()
 
@@ -263,7 +259,7 @@ def test_tokenize_step1(nlp):
     assert res[4]=="patient seed on wed for sob , do not cooperate"
 
 class TestTokenizeStep2:
-    @pytest.fixture(scope="class")
+    @pytest.fixture(scope='class')
     def sample_vocab(self):
         """Sample vocabulary for testing."""
         return {
@@ -335,13 +331,13 @@ class TestTokenizeStep2:
         result = tokenize_step2(input_series, sample_vocab)
         assert result.iloc[0] == 'patient : self / reported - symptoms'
 
-def test_count_valid_tokens_in_vocab():
-    """Test values and type returned by count_valid_tokens_in_vocab()."""
+def test_count_vocab_tokens_in_data():
+    """Test values and type returned by count_vocab_tokens_in_data()."""
     x = pd.Series(['hello hello world 123', 
-                   't.38 120/60'])
-    vocab = ['hello', 'world', 'patient']
-    exp_res = Counter({'hello': 2, 'world': 1})
-    res = count_valid_tokens_in_vocab(x, vocab)
+                   't.38 120/80'])
+    vocab = {'hello', 'world', 't.38', '120/80'}
+    exp_res = Counter({'hello': 2, 'world': 1, 't.38': 1, '120/80': 1})
+    res = count_vocab_tokens_in_data(x, vocab)
     # Check that type is Counter
     assert type(res)==Counter
     # Check that values are correct
