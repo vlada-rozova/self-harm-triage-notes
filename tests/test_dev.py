@@ -1,7 +1,9 @@
+from self_harm_triage_notes.config import N_SPLITS
 from self_harm_triage_notes.dev import *
 import json
 from unittest.mock import mock_open, patch
 from collections import Counter
+from sklearn.model_selection._split import StratifiedKFold
 
 def test_load_vocab():
     mock_vocab_data = ['word1', 'word2', 'word3']
@@ -36,3 +38,20 @@ def test_load_misspelled_dict():
         assert misspelled_dict['word1'] == 'word4'
         assert misspelled_dict['word2'] == 'word5'
         assert misspelled_dict['word3'] == 'word6'
+
+def test_get_stopwords():
+    stopwords = get_stopwords()
+    assert isinstance(stopwords, frozenset)
+    assert len(stopwords) > 0
+    assert 'the' in stopwords
+    assert 'and' in stopwords
+    assert 'or' in stopwords
+
+def test_get_cv_strategy():
+    cv = get_cv_strategy()
+    # Check that type is StratifiedKFold
+    assert type(cv)==StratifiedKFold
+    # Check the number of splits, random state, and shuffle
+    assert cv.n_splits==N_SPLITS
+    assert cv.random_state==3
+    assert cv.shuffle==True
