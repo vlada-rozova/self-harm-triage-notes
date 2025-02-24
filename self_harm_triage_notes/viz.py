@@ -160,16 +160,128 @@ def evaluate_classification(y, y_pred, filename=None):
     if filename:
         plt.savefig(results_dir / (filename + " conf mat.jpeg"), bbox_inches='tight', dpi=300);
 
+def plt_predicted_proba(df, title):
+    """Plot distributions of predicted probabilities"""
+    # Upper half
+    # Histogram: predicted probabilities
+    ax = sns.histplot(x='probability', hue=df.SH.map({0: 'Negative', 1: 'Positive'}), data=df,
+                    binwidth=0.035, palette={'Negative': sns.color_palette('tab10')[7], 
+                                            'Positive': sns.color_palette('tab10')[3]});
+
+    # Vertical line: proability threshold
+    plt.axvline(0.36, 0, 1, color=sns.color_palette('tab20c')[-4], ls='--');
+    ax.get_legend().set_title("Self-harm")
+    ax.set_title(title);
+    # Save plot
+    plt.savefig(results_dir / (title + " predicted proba upper.jpeg"), bbox_inches='tight', dpi=300);
+
+    plt.figure();
+    sns.histplot(x='probability', hue='SH', data=df,
+                    binwidth=0.035, palette={0: sns.color_palette('tab10')[7], 
+                                            1: sns.color_palette('tab10')[3]}, legend=False);
+    plt.axvline(0.36, 0, 1, color=sns.color_palette('tab20c')[-4], ls='--');
+    plt.ylim([0, 1200]);
+    plt.xlabel("Predicted probability");  
+    # Save plot
+    plt.savefig(results_dir / (title + " predicted proba lower.jpeg"), bbox_inches='tight', dpi=300);
+
 def format_quarter(x):
-    """
-    Format quarter to replace number with the first month of the quarter
-    """
+    """Format quarter to replace number with the first month of the quarter"""
     # The first month of each quarter
     q_start_month = {'1': 'Jan', '2': 'Apr', '3': 'Jul', '4': 'Oct'}
     # Slit into year and quarter number
     year, q = x.split('Q')
     # Map and swap order
     return q_start_month[q] + ' ' + year
+
+def plot_length_over_time(df, title, annotate_dev=True):
+    """Plot character length of triage notes over time"""
+    
+    plt.rcParams['figure.figsize'] = (df.quarter.nunique() * 12 / 40, 3)
+
+    sns.lineplot(x='quarter', y='length', hue=df.SH.map({0: 'Negative', 1: 'Positive'}), data=df, 
+                 estimator='mean', errorbar='sd', 
+                 lw=2, palette={'Negative': sns.color_palette('tab10')[7], 
+                                'Positive': sns.color_palette('tab10')[3]})
+    
+    if annotate_dev:
+        # Horisontal line: dev and test sets
+        plt.plot([0, 23], [300, 300], marker='s', markevery=True, color=sns.color_palette('tab20c')[-4]);
+    
+    # Axes limits, ticks, and labels
+    plt.ylim([50, 600]);
+    plt.xticks(rotation=45, 
+               ticks=range(0, df.quarter.nunique(), 2), 
+               labels=[format_quarter(q) for q in df.quarter.cat.categories.astype(str) 
+                       if q.endswith('1') or q.endswith('3')]);
+    plt.xlabel("Arrival date");
+    plt.ylabel("Character length");
+    plt.legend(title='Self-harm');
+
+    # Title
+    plt.title(title);
+
+    # Save plot
+    plt.savefig(results_dir / (title + " char length per quarter.jpeg"), bbox_inches='tight', dpi=300);
+
+def plot_scores_over_time(df, title):
+    """Plot PR AUC, PPV, Sensitivity, and Specificity per quarter"""
+    
+    plt.rcParams['figure.figsize'] = (df.quarter.nunique() * 12 / 40, 6)
+    
+    palette = sns.color_palette("tab10")
+    
+    # PR AUC
+    sns.lineplot(x=range(0, df.quarter.nunique()), 
+                 y=calculate_auc(df.SH, df.probability, method='pr'), 
+                 color=palette[4], ls='--', 
+                 label="PR AUC (overall)")
+    sns.lineplot(df.groupby(df.quarter.cat.codes).apply(lambda x: 
+                                                        calculate_auc(x.SH, x.probability, method='pr')),
+                                                        color=palette[4], lw=2, 
+                                                        label="PR AUC (per quarter)");
+    # PPV
+    sns.lineplot(x=range(0, df.quarter.nunique()), 
+                 y=precision_score(df.SH, df.prediction, zero_division=1), 
+                 color=palette[0], ls='--', 
+                 label="PPV (overall)")
+    sns.lineplot(df.groupby(df.quarter.cat.codes).apply(lambda x: 
+                                                        precision_score(x.SH, x.prediction, zero_division=1)),
+                                                        color=palette[0], lw=2, 
+                                                        label="PPV (per quarter)");
+    # Sensitivity
+    sns.lineplot(x=range(0, df.quarter.nunique()), 
+                 y=recall_score(df.SH, df.prediction), 
+                color=palette[2], ls='--', 
+                label="Sensitivity (overall)")
+    sns.lineplot(df.groupby(df.quarter.cat.codes).apply(lambda x: 
+                                                        recall_score(x.SH, x.prediction)),
+                                                        color=palette[2], lw=2, 
+                                                        label="Sensitivity (per quarter)");
+    # Specificity
+    sns.lineplot(x=range(0, df.quarter.nunique()), 
+                y=recall_score(df.SH, df.prediction, pos_label=0), 
+                color=palette[1], ls='--', 
+                label="Specificity (overall)")
+    sns.lineplot(df.groupby(df.quarter.cat.codes).apply(lambda x: 
+                                                        precision_score(x.SH, x.prediction, pos_label=0)),
+                                                        color=palette[1], lw=2, 
+                                                        label="Specificity (per quarter)");
+    # Axes limits, ticks, and labels
+    plt.ylim([0, 1.01]);
+    plt.xticks(rotation=45, 
+                ticks=range(0, df.quarter.nunique(), 2), 
+                labels=[format_quarter(q) for q in df.quarter.cat.categories.astype(str) 
+                        if q.endswith('1') or q.endswith('3')]);
+    plt.xlabel("Arrival date");
+    plt.ylabel("Performance metric");
+    plt.legend(loc="lower right");
+
+    # Title
+    plt.title(title);
+
+    # Save plot
+    plt.savefig(results_dir / (title + " merics per quarter.jpeg"), bbox_inches='tight', dpi=300);
 
 def plot_dim_over_time(df, title):
     """Plot the percentage of vocabulary overlap per quarter."""
