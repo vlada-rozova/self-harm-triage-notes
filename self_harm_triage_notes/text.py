@@ -4,7 +4,7 @@ import spacy
 from self_harm_triage_notes.custom_tokenizer import combined_rule_tokenizer
 
 def count_tokens(x, valid=False):
-    """Count the number of times each token occurs in corpus."""
+    """Count the number of times each token occurs in corpus. v1 from 14.03.25"""
     tokens = []
     x.apply(lambda y: [tokens.append(token) for token in y.split()])
     counts = Counter(tokens)
@@ -13,22 +13,18 @@ def count_tokens(x, valid=False):
     return counts
 
 def print_token_counts(counts):
-    """Print stats for token counts."""
+    """Print stats for token counts. v1 from 14.03.25"""
     print("The corpus contains %d unique tokens (%d tokens in total)." % 
           (len([k for k, v in counts.items() if v > 0]), sum(counts.values())))
 
 def fix_leading_fullstop(text):
-    """
-    Separate a leading full stop with a whitespace.
-    """
+    """Separate a leading full stop with a whitespace. v1 from 14.03.25"""
     pattern = re.compile(r"(?<=\s)\.(?=[a-z])")
     text = pattern.sub(r". ", text)
     return text
 
 def preprocess(text):
-    """
-    Apply custom pre-processing to ED triage notes. 
-    """
+    """Apply custom pre-processing to ED triage notes. v1 from 14.03.25"""
     # Convert to lower case
     text = text.lower()
     
@@ -219,18 +215,14 @@ def preprocess(text):
     return text
 
 def is_valid_token(token):
-    """
-    Check if a token contains any letters. 
-    """
+    """Check if a token contains any letters. v1 from 14.03.25"""
     for ch in token:
         if ch.isalpha():
             return True
     return False
 
 def load_nlp_pipeline():
-    """
-    Load scispacy model and update with a custom tokenizer.
-    """
+    """Load scispacy model and update with a custom tokenizer. v1 from 14.03.25"""
     nlp = spacy.load("en_core_sci_sm", 
                      disable=['tagger', 'attribute_ruler', 'lemmatizer', 'parser', 'ner'])
     nlp.tokenizer = combined_rule_tokenizer(nlp)
@@ -240,13 +232,11 @@ def load_nlp_pipeline():
     return nlp
             
 def doc2str(doc):
-    """
-    Convert spacy doc into string by joining normalised tokens by whitespace.
-    """
+    """Convert spacy doc into string by joining normalised tokens by whitespace. v1 from 14.03.25"""
     return ' '.join([token.norm_ for token in doc])
 
 def tokenize_step1(x):
-    """First pass of the tokenizer."""
+    """First pass of the tokenizer. v1 from 14.03.25"""
     # Load scispacy model for tokenization
     nlp = load_nlp_pipeline()
     
@@ -257,20 +247,14 @@ def tokenize_step1(x):
     return docs.apply(doc2str).apply(fix_leading_fullstop)
 
 def tokenize_step2(x, vocab):
-    """
-    Additional tokenisation to detect and split compound tokens.
-    """
+    """Additional tokenisation to detect and split compound tokens. v1 from 14.03.25"""
     def is_compound_token(token):
-        """
-        Check if a compound token is known to the ED vocabulary.
-        """
+        """Check if a compound token is known to the ED vocabulary. v1 from 14.03.25"""
         pattern = re.compile(".[\"&'+-./:;].")
         return pattern.search(token) and token not in vocab
 
     def retokenize(text):
-        """
-        Split unknown compound tokens into subtokens and create a new doc.
-        """
+        """Split unknown compound tokens into subtokens and create a new doc. v1 from 14.03.25"""
         new_text = []
         for token in text.split():
             # Check if contains letters and is a compound token
@@ -288,19 +272,15 @@ def tokenize_step2(x, vocab):
     return x.apply(retokenize)
 
 def count_vocab_tokens_in_data(x, vocab):
-    """Count the number of times each token from vocab occurs in corpus."""
+    """Count the number of times each token from vocab occurs in corpus. v1 from 14.03.25"""
     counts = count_tokens(x)
     return Counter({t:counts[t] for t in vocab})
 
 def correct_tokens(text, _dict):
-    """
-    Replace tokens with their corrected versions.
-    """
+    """Replace tokens with their corrected versions. v1 from 14.03.25"""
     corrected_tokens = [_dict[token] if token in _dict else token for token in text.split()]
     return ' '.join(corrected_tokens)
 
 def select_valid_tokens(text):
-    """
-    Select valid tokens from a text.
-    """
+    """Select valid tokens from a text. v1 from 14.03.25"""
     return ' '.join([token for token in text.split() if is_valid_token(token)])
