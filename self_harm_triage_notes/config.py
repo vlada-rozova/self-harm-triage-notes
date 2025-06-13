@@ -43,6 +43,9 @@ amt_ed_path = resources_dir / config['resources']['amt_ed_file']
 amt_mp_path = resources_dir / config['resources']['amt_mp_file']
 amt_tp_path = resources_dir / config['resources']['amt_tp_file']
 
+# Path to list of Vic suburbs
+vic_path = resources_dir / config['resources']['vic_file']
+
 # Path to the list of abbreviations
 abbr_path = resources_dir / config['resources']['abbr_file']
 

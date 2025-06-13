@@ -16,6 +16,7 @@ resources:
   amt_ed_file: "AMT/Australian-emergency-department-reference-set-20230831-expansion.tsv"
   amt_mp_file: "AMT/Medicinal-product-reference-set-20230831-expansion.tsv"
   amt_tp_file: "AMT/Trade-product-reference-set-20230831-expansion.tsv"
+  vic_file: "places_in_victoria.txt"
   abbr_file: "Abbreviations/Clinical Abbreviations List - SESLHDPR 282 cleaned.xlsx"
 
 models_dir: "models"
