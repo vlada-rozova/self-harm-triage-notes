@@ -1,0 +1,24 @@
+raw_data:
+  dir: "Data/RMH LV May23"
+  rmh_data_file_1: "RMH_Q1 2012 - Q4 2019 - DEIDENT.xlsx"
+  rmh_data_file_2: "RMH_Q1 2020 - Q2 2022 - DEIDENT.xlsx"
+  lvrh_data_file: "LVRH MASTER_Q1 2012 - Q2 2022 v2 - DEIDENT.xlsx"
+
+data: 
+  spell_corr: "data/spelling correction"
+  interim_data: "data/interim"
+  proc_data: "data/processed"
+  pred_data: "data/predicted"
+
+resources:
+  dir: "Resources"
+  scowl_dir: "scowl-2020.12.07/final"
+  amt_ed_file: "AMT/Australian-emergency-department-reference-set-20230831-expansion.tsv"
+  amt_mp_file: "AMT/Medicinal-product-reference-set-20230831-expansion.tsv"
+  amt_tp_file: "AMT/Trade-product-reference-set-20230831-expansion.tsv"
+  abbr_file: "Abbreviations/Clinical Abbreviations List - SESLHDPR 282 cleaned.xlsx"
+
+models_dir: "models"
+
+results_dir: "results"
+

@@ -1,39 +1,60 @@
 from pathlib import Path
+import yaml
 
 # Project root directory
 root = Path().resolve().parent
 
+def load_config(path=root / "configs/base.yaml"):
+    with open(path) as f:
+        return yaml.safe_load(f)
+    
+config = load_config()
+
+### Raw data
 # Raw data directory
-raw_data_dir = root.parents[1] / "Data/RMH LV May23"
+raw_data_dir =  root.parents[1]  / config['raw_data']['dir']
 
-# Datasets of triage notes
-data_interim_dir = root / "data/interim"
-data_proc_dir = root / "data/processed"
-data_pred_dir = root / "data/predicted"
+# Paths to raw data files
+rmh_raw_data_path = [
+    raw_data_dir / config['raw_data']['rmh_data_file_1'],
+    raw_data_dir / config['raw_data']['rmh_data_file_2']
+]
+lvrh_raw_data_path = raw_data_dir / config['raw_data']['lvrh_data_file']
 
+### Datasets of triage notes
+# Data (interim, processed, predictied)
+interim_data_dir = root / config['data']['interim_data']
+proc_data_dir = root / config['data']['proc_data']
+pred_data_dir = root / config['data']['pred_data']
+
+### Ancillaries
 # Data to support spelling correction
-spell_corr_dir = root / "data/spelling correction"
+spell_corr_dir = config['data']['spell_corr']
 
+### Resources
 # Resources directory
-resources_dir = root.parents[2] / "Resources"
+resources_dir = root.parents[2] / config['resources']['dir']
 
 # Dictionary of English words
-scowl_dir = resources_dir / "scowl-2020.12.07/final"
+scowl_dir = resources_dir / config['resources']['scowl_dir']
 
 # Paths to AMT reference lists
-amt_ed_path = resources_dir / "AMT/Australian-emergency-department-reference-set-20230831-expansion.tsv"
-amt_mp_path = resources_dir / "AMT/Medicinal-product-reference-set-20230831-expansion.tsv"
-amt_tp_path = resources_dir / "AMT/Trade-product-reference-set-20230831-expansion.tsv"
+amt_ed_path = resources_dir / config['resources']['amt_ed_file']
+amt_mp_path = resources_dir / config['resources']['amt_mp_file']
+amt_tp_path = resources_dir / config['resources']['amt_tp_file']
 
 # Path to the list of abbreviations
-abbr_path = resources_dir / "Abbreviations/Clinical Abbreviations List - SESLHDPR 282 cleaned.xlsx"
+abbr_path = resources_dir / config['resources']['abbr_file']
 
 # Models directory
-models_dir = root / "models"
+models_dir = root / config['models_dir']
 
 # Results directory
-results_dir = root / "results"
+results_dir = root / config['results_dir']
 
-# Global variables
+### Global variables
 N_SPLITS = 5
+
+### Labels
+SH_LABELS = [0, 1]
 
