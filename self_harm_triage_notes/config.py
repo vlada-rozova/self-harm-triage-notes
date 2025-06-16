@@ -29,7 +29,7 @@ pred_data_dir = root / config['data']['pred_data']
 
 ### Ancillaries
 # Data to support spelling correction
-spell_corr_dir = config['data']['spell_corr']
+spell_corr_dir = root / config['data']['spell_corr']
 
 ### Resources
 # Resources directory
