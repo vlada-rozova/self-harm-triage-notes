@@ -1,7 +1,4 @@
-from self_harm_triage_notes.config import spell_corr_dir, resources_dir
 from self_harm_triage_notes.config import N_SPLITS
-from self_harm_triage_notes.viz import plot_curves_cv, plot_calibration_curve
-import json
 from collections import Counter
 import numpy as np
 import pandas as pd
@@ -14,65 +11,13 @@ from sklearn.model_selection import GridSearchCV, RandomizedSearchCV
 from sklearn.calibration import CalibratedClassifierCV
 from sklearn.metrics import *
 
-
-def load_vocab(filename):
-    """
-    Load vocabulary.
-    """
-    with open (spell_corr_dir / (filename + "_vocab.json"), 'rb') as f:
-        vocab = json.load(f)
-        
-    print("Domain-specific vocabulary contains %d words." % len(vocab))
-    
-    return frozenset(vocab)
-
-def load_word_list(filename):
-    """
-    Load word frequency list.
-    """
-    with open (spell_corr_dir / (filename + "_word_freq_list.json"), 'rb') as f:
-        word_list = json.load(f)
-        
-    print("Word frequency list contains %d unique words (%d in total)." % 
-          (len(word_list), sum(word_list.values())))
-    
-    return Counter(word_list)
-
-def load_misspelled_dict(filename):
-    """
-    Load dictionary of misspellings.
-    """
-    with open (spell_corr_dir / (filename + "_misspelled_dict.json"), 'rb') as f:
-        misspelled_dict = json.load(f)
-    
-    print("Spelling correction available for %d words." % len(misspelled_dict))
-        
-    return misspelled_dict
-
-def load_slang_dict():
-    """
-    Create a dictionary of slang used for medications mapped to their generic names.
-    """
-    # Load medication names
-    drugs = pd.read_csv(resources_dir / "medication_names.csv")
-
-    drugs.slang = drugs.slang.str.strip().str.lower()
-    drugs.generic_name = drugs.generic_name.str.strip().str.lower()
-    drugs.dropna(subset=["slang"], inplace=True)
-
-    # Create a dictionary to convert slang to generic names
-    slang_dict = dict(zip(drugs.slang, drugs.generic_name))
-
-    print("Slang available for %d words." % len(slang_dict))
-
-    return slang_dict
-
 def get_stopwords():
     """
     The set of stop words when you do this:
     from nltk.corpus import stopwords
     from sklearn.feature_extraction.stop_words import ENGLISH_STOP_WORDS
     ENGLISH_STOP_WORDS = set( stopwords.words('english') ).union( set(ENGLISH_STOP_WORDS) )
+    v1 from 14.03.25
     """
     english_stopwords = [
         'a',
@@ -429,18 +374,9 @@ def get_stopwords():
         'yourselves'
     ]
     return english_stopwords
-        
-def get_cv_strategy(n_splits=N_SPLITS):
-    """
-    Return the CV object. Defaults to 5 splits.
-    v1 from 13.12.23
-    """
-    return StratifiedKFold(n_splits=n_splits, shuffle=True, random_state=3)
 
 def get_vectorizer(vectorizer_mode, params):
-    """
-    Call vectoriser with supplied parameters.
-    """
+    """Call vectoriser with supplied parameters. v1 from 14.03.25"""
     if vectorizer_mode == "select features":
         return FeatureSelector(params)
     else:
@@ -548,9 +484,7 @@ class FeatureSelector(object):
         return self.fit(X, y).transform(X)     
        
 def select_k_best(X, y, feature_names, k=5000, verbose=False):
-    """
-    Select k best features based on the chi2 statistics.
-    """
+    """Select k best features based on the chi2 statistics. v1 from 14.03.25"""
     assert k > 1
     ch2 = SelectKBest(chi2, k=k)
     ch2.fit(X, y)
@@ -567,9 +501,7 @@ def select_k_best(X, y, feature_names, k=5000, verbose=False):
     return df_features
 
 def select_by_pvalue(X, y, feature_names, alpha=0.05, verbose=False):
-    """
-    Select features with p-value < alpha based on the chi2 statistics.
-    """
+    """Select features with p-value < alpha based on the chi2 statistics. v1 from 14.03.25"""
     assert alpha < 1
     df_features = pd.DataFrame()
     if y.max() > 1:
@@ -603,150 +535,3 @@ def select_by_pvalue(X, y, feature_names, alpha=0.05, verbose=False):
             print()
         
     return df_features
-
-def score_cv(model, X, y, groups=None):
-    """
-    Train and evaluate a model using cross-validation. 
-    """
-    cv = get_cv_strategy()
-    
-    scoring = {
-        'roc' : 'roc_auc', 
-        'ap' : 'average_precision'
-    }
-    
-    start_time = time()
-    
-    scores = cross_validate(estimator=model, X=X, y=y, groups=groups, cv=cv, scoring=scoring, n_jobs=-1)
-    
-    train_time = time() - start_time
-    
-    print("_" * 80)
-    print("Training with %d-fold cross-validation:" % cv.n_splits)
-    try:
-        print(model[-1])
-    except:
-        print(model)
-    print("train time: %0.3fs" % train_time)
-    print("ROC AUC score: %0.3f (+/- %0.2f)" % (scores['test_roc'].mean(), scores['test_roc'].std()))
-    print("AP score: %0.3f (+/- %0.2f)" % (scores['test_ap'].mean(), scores['test_ap'].std()))
-    print()
-
-def search_params(model, search_mode, param_grid, X, y, groups=None, n_splits=N_SPLITS, refit=False, verbose=True):
-    """
-    Perform grid/random search to find optimal hyperparameter values.
-    """
-    cv = get_cv_strategy(n_splits)
-    cv_generator = cv.split(X, y, groups)
-    
-    if search_mode=='grid':
-        search = GridSearchCV(estimator=model, param_grid=param_grid, 
-                              cv=cv_generator, scoring='average_precision', n_jobs=-1, 
-                              refit=refit, verbose=0)
-    elif search_mode=='random':
-        search = RandomizedSearchCV(estimator=model, param_distributions=param_grid, n_iter=100, 
-                                    cv=cv_generator, scoring='average_precision', n_jobs=-1, 
-                                    refit=refit, verbose=0)
-        
-    search_result = search.fit(X, y)
-    
-    print("Best for current fold: %.3f using %s" % (search_result.best_score_, search_result.best_params_))
-    
-    if verbose:
-        for mean, std, param in zip(search_result.cv_results_['mean_test_score'], 
-                                    search_result.cv_results_['std_test_score'], 
-                                    search_result.cv_results_['params']):
-            print("%.3f (+/- %.3f) with: %r" % (mean, std, param))
-        print()
-            
-    if refit:        
-        return search_result.best_estimator_
-    else:
-        return search_result
-    
-def predict_cv(model, X, y, groups=None, options=[]):
-    """
-    Train a model and make predictions using cross-validation.
-    """
-    cv = get_cv_strategy()
-    
-    y_proba = cross_val_predict(estimator=model, X=X, y=y, groups=groups, cv=cv, method="predict_proba", n_jobs=-1)
-    y_proba = y_proba[:, 1]
-    
-    if 'plot_curves' in options:
-        cv_generator = cv.split(X, y, groups)
-        plot_curves_cv(y, y_proba, cv_generator)
-        
-    if 'select_threshold' in options:
-        cv_generator = cv.split(X, y, groups)
-        select_threshold_cv(y, y_proba, cv_generator)
-    
-    return y_proba
-
-def calibrate(model, X, y, y_proba):
-    # Calibrated clssifier
-    calibrated_model = CalibratedClassifierCV(model, method='isotonic', cv=3)
-
-    # Model performance in each CV fold
-    score_cv(calibrated_model, X, y)
-
-    # Make predictions for each CV fold
-    y_proba_calibrated = predict_cv(calibrated_model, X, y, options=['plot_curves'])
-
-    # Plot calibration curves
-    plot_calibration_curve(y, y_proba, y_proba_calibrated, filename=None)
-
-    return calibrated_model, y_proba_calibrated
-
-def select_threshold(y, y_proba, method='pr', beta=1.0, verbose=True):
-    """
-    Find optimal threshold value based ROC/PR curve.
-    """ 
-    if method=='roc':
-        if verbose:
-            print("The threshold optimises G-means calculated from the ROC curve.")
-        metric = "G-means"
-        fpr, tpr, thresholds = roc_curve(y, y_proba)
-        values = np.sqrt(tpr * (1-fpr))
-        
-              
-    elif method=='pr':
-        if verbose: 
-            print("The threshold optimises F1-score calculated from the PR curve.")
-        metric = "F1-score"
-        precision, recall, thresholds = precision_recall_curve(y, y_proba)  
-        values = ((1 + beta**2) * precision * recall) / (beta**2 * precision + recall)
-        
-    idx = np.argmax(values)
-    thresh = thresholds[idx]
-    if verbose:
-        print('Best threshold for the model = %.3f, %s = %.3f' % (thresh, metric, values[idx]))
-        print()
-    
-    eps = 0.000001
-    thresh -= eps
-    
-    return thresh
-
-def select_threshold_cv(y, y_proba, cv_generator, method='pr', beta=1.0, verbose=True):
-    """
-    Find optimal threshold for each CV fold.
-    """        
-    thresholds = []
-    
-    for _, val_idx in cv_generator:
-        # Select optimal threshold
-        thresh = select_threshold(y.loc[val_idx], y_proba[val_idx], method, beta, verbose)
-        thresholds.append(thresh)
-    
-    thresholds = np.array(thresholds)
-    
-    print("Average optimal threshold: %0.3f (+/- %0.2f)" % (thresholds.mean(), thresholds.std()))
-
-def threshold_proba(y_proba, thresh):
-    """
-    Convert predicted probabilities to crisp class labels.
-    """
-    assert (y_proba.min() >= 0) & (y_proba.max() <= 1)
-    y_pred = np.where(y_proba > thresh, 1, 0)
-    return y_pred
