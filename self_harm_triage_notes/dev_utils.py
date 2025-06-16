@@ -1,15 +1,7 @@
-from self_harm_triage_notes.config import N_SPLITS
-from collections import Counter
 import numpy as np
 import pandas as pd
-from time import time
-from sklearn.model_selection import StratifiedKFold
 from sklearn.feature_extraction.text import TfidfVectorizer
 from sklearn.feature_selection import SelectKBest, chi2
-from sklearn.model_selection import cross_validate, cross_val_predict
-from sklearn.model_selection import GridSearchCV, RandomizedSearchCV
-from sklearn.calibration import CalibratedClassifierCV
-from sklearn.metrics import *
 
 def get_stopwords():
     """
