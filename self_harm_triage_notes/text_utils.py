@@ -1,10 +1,16 @@
 import pandas as pd
 import re
-import json
 import spacy
+import json
 from collections import Counter
-from self_harm_triage_notes.config import resources_dir, spell_corr_dir
 from self_harm_triage_notes.custom_tokenizer import combined_rule_tokenizer
+
+def is_valid_token(token):
+    """Check if a token contains any letters. v1 from 14.03.25"""
+    for ch in token:
+        if ch.isalpha():
+            return True
+    return False
 
 def count_tokens(x, valid=False):
     """Count the number of times each token occurs in corpus. v1 from 14.03.25"""
@@ -217,13 +223,6 @@ def preprocess(text):
     
     return text
 
-def is_valid_token(token):
-    """Check if a token contains any letters. v1 from 14.03.25"""
-    for ch in token:
-        if ch.isalpha():
-            return True
-    return False
-
 def load_nlp_pipeline():
     """Load scispacy model and update with a custom tokenizer. v1 from 14.03.25"""
     nlp = spacy.load("en_core_sci_sm", 
@@ -231,7 +230,6 @@ def load_nlp_pipeline():
     nlp.tokenizer = combined_rule_tokenizer(nlp)
     nlp.tokenizer.rules = {k: v for k,v in nlp.tokenizer.rules.items() 
                            if (k!='id') and (k!='wed') and (k!='im')}
-    
     return nlp
             
 def doc2str(doc):
@@ -288,18 +286,18 @@ def select_valid_tokens(text):
     """Select valid tokens from a text. v1 from 14.03.25"""
     return ' '.join([token for token in text.split() if is_valid_token(token)])
 
-def load_vocab(filename):
+def load_vocab(path, filename):
     """Load vocabulary. v1 from 14.03.25"""
-    with open (spell_corr_dir / (filename + "_vocab.json"), 'rb') as f:
+    with open (path / (filename + "_vocab.json"), 'rb') as f:
         vocab = json.load(f)
         
     print("Domain-specific vocabulary contains %d words." % len(vocab))
     
     return frozenset(vocab)
 
-def load_word_list(filename):
+def load_word_list(path, filename):
     """Load word frequency list. v1 from 14.03.25"""
-    with open (spell_corr_dir / (filename + "_word_freq_list.json"), 'rb') as f:
+    with open (path / (filename + "_word_freq_list.json"), 'rb') as f:
         word_list = json.load(f)
         
     print("Word frequency list contains %d unique words (%d in total)." % 
@@ -307,19 +305,19 @@ def load_word_list(filename):
     
     return Counter(word_list)
 
-def load_misspelled_dict(filename):
+def load_misspelled_dict(path, filename):
     """Load dictionary of misspellings. v1 from 14.03.25"""
-    with open (spell_corr_dir / (filename + "_misspelled_dict.json"), 'rb') as f:
+    with open (path / (filename + "_misspelled_dict.json"), 'rb') as f:
         misspelled_dict = json.load(f)
     
     print("Spelling correction available for %d words." % len(misspelled_dict))
         
     return misspelled_dict
 
-def load_slang_dict():
+def load_slang_dict(path):
     """Create a dictionary of slang used for medications mapped to their generic names. v1 from 14.03.25"""
     # Load medication names
-    drugs = pd.read_csv(resources_dir / "medication_names.csv")
+    drugs = pd.read_csv(path / "medication_names.csv")
 
     drugs.slang = drugs.slang.str.strip().str.lower()
     drugs.generic_name = drugs.generic_name.str.strip().str.lower()
