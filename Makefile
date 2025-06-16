@@ -34,18 +34,18 @@ lint:
 format:
 	black --config pyproject.toml self_harm_triage_notes
 
-
-
-
 ## Set up python interpreter environment
 .PHONY: create_environment
 create_environment:
 	conda env create --name $(PROJECT_NAME) -f environment.yml
 	
 	@echo ">>> conda env created. Activate with:\nconda activate $(PROJECT_NAME)"
-	
 
-
+## Update ml-health-toolbox
+.PHONY: update_ml_health_toolbox
+update_ml_health_toolbox:
+	pip install -e ../../../ml-health-toolbox --no-deps --force-reinstall
+	@echo ">>> Updating ml-health-toolbox to implement recent changes..."
 
 #################################################################################
 # PROJECT RULES                                                                 #
