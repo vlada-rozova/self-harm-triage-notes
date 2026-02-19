@@ -3,7 +3,7 @@ import pandas as pd
 from self_harm_triage_notes.text_utils import count_tokens, count_vocab_tokens_in_data
 from scipy.spatial.distance import jensenshannon
 from sklearn.metrics import *
-from sklearn.feature_extraction.text import TfidfVectorizer 
+from sklearn.feature_extraction.text import CountVectorizer
 from self_harm_triage_notes.dev_utils import get_stopwords
 
 # Pretty plots
@@ -327,7 +327,7 @@ def plot_selected_fts_over_time(df, selected_features, title, palette, results_d
                  label="Selected features")
     
     # Initialise the tokenizer
-    vectorizer = TfidfVectorizer(stop_words=get_stopwords(), token_pattern=r'\S+', ngram_range=(1,3), vocabulary=selected_features)
+    vectorizer = CountVectorizer(stop_words=get_stopwords(), token_pattern=r'\S+', ngram_range=(1,3), vocabulary=selected_features)
     # Fit the vecotriser
     vectorizer.fit(df.entities)
     
@@ -359,12 +359,12 @@ def plot_divergence_over_time(df_dev, df, selected_features, title, palette, res
     """
     def calculate_divergence(x):
         ft_counts = vectorizer.fit_transform(x).toarray().sum(axis=0)
-        return jensenshannon(dev_counts, ft_counts)
+        return jensenshannon(dev_counts, ft_counts, base=2.0)
     
     plt.figure(figsize=(df.quarter.nunique() * 12 / 48, 2))
     
     # Initialise the tokenizer
-    vectorizer = TfidfVectorizer(stop_words=get_stopwords(), token_pattern=r'\S+', ngram_range=(1,3), vocabulary=selected_features)
+    vectorizer = CountVectorizer(stop_words=get_stopwords(), token_pattern=r'\S+', ngram_range=(1,3), vocabulary=selected_features)
 
     # Fit the vecotriser
     dev_counts = vectorizer.fit_transform(df_dev.entities).toarray().sum(axis=0)
