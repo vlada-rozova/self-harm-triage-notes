@@ -206,7 +206,7 @@ def plot_dim_over_time(df, title, palette, results_dir=None):
         """Calculate the number of unique valid tokens."""
         return len(count_tokens(notes, valid=True))
     
-    plt.figure(figsize=(df.quarter.nunique() * 12 / 40, 3))
+    plt.figure(figsize=(df.quarter.nunique() * 12 / 48, 3))
 
     # Lineplot: Overlap with development set
     sns.lineplot(df.groupby(df.quarter.cat.codes).apply(lambda x: 
@@ -246,7 +246,7 @@ def plot_token_overlap_over_time(df, vocab, title, palette, results_dir=None):
 
         return sum([counts[t]>0 for t in vocab]) / len(counts) * 100
     
-    plt.rcParams['figure.figsize'] = (df.quarter.nunique() * 12 / 40, 3)
+    plt.figure(figsize=(df.quarter.nunique() * 12 / 48, 3))
 
     # Lineplot: Overlap with development set
     sns.lineplot(df.groupby(df.quarter.cat.codes).apply(lambda x: 
@@ -286,7 +286,7 @@ def plot_dim_reduction_over_time(df, col1, col2, title, palette, results_dir=Non
         tokens_after = count_tokens(after, valid=True)
         return 100 - len(tokens_after) * 100 / len(tokens_before)
     
-    plt.rcParams['figure.figsize'] = (df.quarter.nunique() * 12 / 40, 3)
+    plt.figure(figsize=(df.quarter.nunique() * 12 / 48, 2))
 
     # Lineplot: Overlap with development set
     sns.lineplot(df.groupby(df.quarter.cat.codes).apply(lambda x: 
@@ -306,7 +306,7 @@ def plot_dim_reduction_over_time(df, col1, col2, title, palette, results_dir=Non
 
     # Save plot
     if results_dir is not None:
-        plt.savefig(results_dir / ("Dimensionality reduction per quarter" + title + ".png"), bbox_inches='tight', dpi=300);
+        plt.savefig(results_dir / ("Dimensionality reduction per quarter " + title + ".png"), bbox_inches='tight', dpi=300);
 
 def plot_selected_fts_over_time(df, selected_features, title, palette, results_dir=None):
     """
@@ -316,18 +316,20 @@ def plot_selected_fts_over_time(df, selected_features, title, palette, results_d
         ft_counts = vectorizer.fit_transform(x)
         return (ft_counts.sum(axis=0) > 0).sum()
     
-    # Initialise the tokenizer
-    vectorizer = TfidfVectorizer(stop_words=get_stopwords(), token_pattern=r'\S+', ngram_range=(1,3), vocabulary=selected_features)
-    # Fit the vecotriser
-    vectorizer.fit(df.entities)
-    
     n_quarters = df.quarter.nunique()
-    plt.rcParams['figure.figsize'] = (n_quarters * 12 / 40, 3)
+
+    plt.figure(figsize=(n_quarters * 12 / 48, 3))
     
+    # Lineplot: Number of selected features
     sns.lineplot(x=range(0, n_quarters), 
                  y=len(selected_features), 
                  color=palette[0], ls='--', 
                  label="Selected features")
+    
+    # Initialise the tokenizer
+    vectorizer = TfidfVectorizer(stop_words=get_stopwords(), token_pattern=r'\S+', ngram_range=(1,3), vocabulary=selected_features)
+    # Fit the vecotriser
+    vectorizer.fit(df.entities)
     
     # Lineplot: Overlap with development set
     sns.lineplot(df.groupby(df.quarter.cat.codes).apply(lambda x: 
@@ -349,7 +351,7 @@ def plot_selected_fts_over_time(df, selected_features, title, palette, results_d
 
     # Save plot
     if results_dir is not None:
-        plt.savefig(results_dir / ("Selected features per quarter" + title + ".png"), bbox_inches='tight', dpi=300);
+        plt.savefig(results_dir / ("Selected features per quarter " + title + ".png"), bbox_inches='tight', dpi=300);
 
 def plot_divergence_over_time(df_dev, df, selected_features, title, palette, results_dir=None):
     """
@@ -359,17 +361,19 @@ def plot_divergence_over_time(df_dev, df, selected_features, title, palette, res
         ft_counts = vectorizer.fit_transform(x).toarray().sum(axis=0)
         return jensenshannon(dev_counts, ft_counts)
     
+    plt.figure(figsize=(df.quarter.nunique() * 12 / 48, 2))
+    
     # Initialise the tokenizer
     vectorizer = TfidfVectorizer(stop_words=get_stopwords(), token_pattern=r'\S+', ngram_range=(1,3), vocabulary=selected_features)
+
     # Fit the vecotriser
     dev_counts = vectorizer.fit_transform(df_dev.entities).toarray().sum(axis=0)
-
-    plt.rcParams['figure.figsize'] = (df.quarter.nunique() * 12 / 40, 3)
 
     # Lineplot: Overlap with development set
     sns.lineplot(df.groupby(df.quarter.cat.codes).apply(lambda x: 
                                                         calculate_divergence(x.entities)),
-                                                        color=palette[0], lw=2);
+                                                        color=palette[1], lw=2);
+    
     # Axes limits, ticks, and labels
     plt.ylim([0.05, 0.31]);
     plt.xticks(rotation=45, 
@@ -384,4 +388,4 @@ def plot_divergence_over_time(df_dev, df, selected_features, title, palette, res
 
     # Save plot
     if results_dir is not None:
-        plt.savefig(results_dir / (title + " js divergence per quarter.png"), bbox_inches='tight', dpi=300);
+        plt.savefig(results_dir / ("JS divergence per quarter " + title + ".png"), bbox_inches='tight', dpi=300);
